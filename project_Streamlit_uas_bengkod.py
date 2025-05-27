@@ -134,6 +134,9 @@ df_clean['NObeyesdad'] = encoder.fit_transform(df_clean['NObeyesdad'])
 scaler = StandardScaler()
 df_clean[numeric_columns] = scaler.fit_transform(df_clean[numeric_columns])
 
+# Save the scaler
+joblib.dump(scaler, "scaler.pkl")
+
 # Pisahkan fitur dan target
 X = df_clean.drop('NObeyesdad', axis=1)
 y = df_clean['NObeyesdad']
@@ -295,14 +298,18 @@ best_rf = grid_search.best_estimator_
 print("Best Parameters:", grid_search.best_params_)
 
 # Save the best model
-joblib.dump(best_rf, "random_forest_model.pkl")
+model = joblib.load("random_forest_model.pkl")
+scaler = joblib.load("scaler.pkl")  # Simpan dan load scaler yang digunakan saat training
 
 # Prediksi dengan model terbaik
 y_pred_tuned = best_rf.predict(X_test)
 
+st.title("Prediksi Tingkat Obesitas")
+st.write("Isi data berikut untuk memprediksi status berat badan Anda:")
+
 # Input user
 age = st.slider("Usia", 10, 100)
-height = st.slider("Tinggi Badan (m)", 1.0, 2.5, step=0.01)
+height = st.slider("Tinggi Badan (meter)", 1.0, 2.5, step=0.01)
 weight = st.slider("Berat Badan (kg)", 20.0, 200.0, step=0.5)
 fcvc = st.slider("Konsumsi Sayur (1 - jarang, 3 - sering)", 1, 3)
 ncp = st.slider("Jumlah makan besar per hari", 1, 4)
@@ -310,15 +317,24 @@ ch2o = st.slider("Konsumsi air harian (1 - sedikit, 3 - banyak)", 1, 3)
 faf = st.slider("Frekuensi aktivitas fisik (0 - tidak pernah, 3 - rutin)", 0, 3)
 tue = st.slider("Waktu screen time (jam/hari)", 0, 3)
 
-# Sederhanakan dan sesuaikan dengan model Anda
+# Gabungkan ke dalam array
 input_data = np.array([[age, height, weight, fcvc, ncp, ch2o, faf, tue]])
-input_data = input_data.astype(float)
+
+# Standarisasi input
+input_scaled = scaler.transform(input_data)
+
+# Mapping hasil prediksi ke label
+label_map = {
+    0: "Insufficient_Weight", 
+    1: "Normal_Weight", 
+    2: "Overweight_Level_I",
+    3: "Overweight_Level_II", 
+    4: "Obesity_Type_I",
+    5: "Obesity_Type_II", 
+    6: "Obesity_Type_III"
+}
 
 if st.button("Prediksi"):
-    prediction = model.predict(input_data)
-    label_map = {
-        0: "Insufficient_Weight", 1: "Normal_Weight", 2: "Overweight_Level_I",
-        3: "Overweight_Level_II", 4: "Obesity_Type_I",
-        5: "Obesity_Type_II", 6: "Obesity_Type_III"
-    }
-    st.success(f"Hasil Prediksi: {label_map.get(prediction[0], 'Unknown')}")
+    prediction = model.predict(input_scaled)
+    label = label_map.get(prediction[0], "Unknown")
+    st.success(f"Hasil Prediksi: {label}")
