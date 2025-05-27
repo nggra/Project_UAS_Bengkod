@@ -38,7 +38,7 @@ from sklearn.linear_model import LogisticRegression
 import warnings
 warnings.filterwarnings('ignore')
 
-file_path = '/content/ObesityDataSet.csv'
+file_path = 'ObesityDataSet.csv'
 df = pd.read_csv(file_path)
 
 head = df.head()
