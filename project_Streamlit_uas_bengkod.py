@@ -136,7 +136,7 @@ df_clean[numeric_columns] = scaler.fit_transform(df_clean[numeric_columns])
 
 # Save the scaler
 joblib.dump(scaler, "scaler.pkl")
-joblib.dump(encoder, "label_encoder.pkl")
+joblib.dump(best_rf, "label_encoder.pkl")
 
 
 # Pisahkan fitur dan target
