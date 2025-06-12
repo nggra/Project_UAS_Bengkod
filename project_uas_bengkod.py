@@ -143,9 +143,20 @@ joblib.dump(scaler, "scaler.pkl")
 X = df_clean.drop('NObeyesdad', axis=1)
 y = df_clean['NObeyesdad']
 
+# Pastikan semua kolom numerik
+X = X.astype(np.float64)
+
+# Convert ke numpy array agar kompatibel dengan SMOTE
+X = X.values
+y = y.values
+
 # Tampilkan distribusi kelas
 print("Distribusi sebelum SMOTE:")
-print(y.value_counts())
+print(pd.Series(y).value_counts())
+
+# Terapkan SMOTE
+smote = SMOTE(random_state=42)
+X_resampled, y_resampled = smote.fit_resample(X, y)
 
 # Hitung korelasi numerik
 corr_matrix = df.corr(numeric_only=True)
