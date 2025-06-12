@@ -137,6 +137,8 @@ df_clean[numeric_columns] = scaler.fit_transform(df_clean[numeric_columns])
 # Save the scaler
 joblib.dump(scaler, "scaler.pkl")
 joblib.dump(encoder, "label_encoder.pkl")
+joblib.dump(best_rf, "random_forest_model.pkl")
+
 
 
 # Pisahkan fitur dan target
