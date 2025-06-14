@@ -385,10 +385,7 @@ except Exception as e:
     st.stop()
 
 # Prediksi
-if st.button("🔍 Prediksi"):
-    try:
-        prediction = model.predict(input_scaled)
-        label = label_map.get(prediction[0], "Unknown")
-        st.success(f"🎯 Hasil Prediksi: **{label}**")
-    except Exception as e:
-        st.error(f"🚨 Gagal melakukan prediksi: {e}")
+if st.button("Prediksi"):
+    prediction = model.predict(input_scaled)
+    label = label_map.get(prediction[0], "Unknown")
+    st.success(f"Hasil Prediksi: {label}")
