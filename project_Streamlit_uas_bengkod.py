@@ -308,6 +308,17 @@ scaler = joblib.load("scaler.pkl")  # Simpan dan load scaler yang digunakan saat
 # Prediksi dengan model terbaik
 y_pred_tuned = best_rf.predict(X_test)
 
+# Mapping hasil prediksi ke label
+label_map = {
+    0: "Insufficient_Weight", 
+    1: "Normal_Weight", 
+    2: "Overweight_Level_I",
+    3: "Overweight_Level_II", 
+    4: "Obesity_Type_I",
+    5: "Obesity_Type_II", 
+    6: "Obesity_Type_III"
+}
+
 st.title("Prediksi Tingkat Obesitas")
 st.write("Isi data berikut untuk memprediksi status berat badan Anda:")
 
@@ -336,18 +347,48 @@ input_data = np.array([[age, height, weight, fcvc, ncp, ch2o, faf, tue]])
 # Standarisasi input
 input_scaled = scaler.transform(input_data)
 
-# Mapping hasil prediksi ke label
-label_map = {
-    0: "Insufficient_Weight", 
-    1: "Normal_Weight", 
-    2: "Overweight_Level_I",
-    3: "Overweight_Level_II", 
-    4: "Obesity_Type_I",
-    5: "Obesity_Type_II", 
-    6: "Obesity_Type_III"
-}
+# Encode manual fitur kategorikal
+gender_encoded = 1 if gender == "Male" else 0
+family_history_encoded = 1 if family_history == "yes" else 0
+favc_encoded = 1 if favc == "yes" else 0
+caec_encoded = {"no": 0, "Sometimes": 1, "Frequently": 2, "Always": 3}[caec]
+smoke_encoded = 1 if smoke == "yes" else 0
+scc_encoded = 1 if scc == "yes" else 0
+calc_encoded = {"no": 0, "Sometimes": 1, "Frequently": 2}[calc]
+mtrans_encoded = {"Public_Transportation": 0, "Walking": 1, "Automobile": 2, "Motorbike": 3, "Bike": 4}[mtrans]
 
-if st.button("Prediksi"):
-    prediction = model.predict(input_scaled)
-    label = label_map.get(prediction[0], "Unknown")
-    st.success(f"Hasil Prediksi: {label}")
+# Gabungkan semua fitur dalam urutan yang benar (harus sama dengan saat training)
+input_data = np.array([[
+    age,
+    gender_encoded,
+    height,
+    weight,
+    family_history_encoded,
+    favc_encoded,
+    fcvc,
+    ncp,
+    caec_encoded,
+    smoke_encoded,
+    ch2o,
+    scc_encoded,
+    faf,
+    tue,
+    calc_encoded,
+    mtrans_encoded
+]])
+
+# Standarisasi input
+try:
+    input_scaled = scaler.transform(input_data)
+except Exception as e:
+    st.error(f"Gagal melakukan scaling: {e}")
+    st.stop()
+
+# Prediksi
+if st.button("🔍 Prediksi"):
+    try:
+        prediction = model.predict(input_scaled)
+        label = label_map.get(prediction[0], "Unknown")
+        st.success(f"🎯 Hasil Prediksi: **{label}**")
+    except Exception as e:
+        st.error(f"🚨 Gagal melakukan prediksi: {e}")
