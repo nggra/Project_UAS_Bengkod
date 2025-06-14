@@ -313,13 +313,22 @@ st.write("Isi data berikut untuk memprediksi status berat badan Anda:")
 
 # Input user
 age = st.slider("Usia", 10, 100)
+gender = st.selectbox("Jenis Kelamin", options=["Male", "Female"])
 height = st.slider("Tinggi Badan (meter)", 1.0, 2.5, step=0.01)
 weight = st.slider("Berat Badan (kg)", 20.0, 200.0, step=0.5)
-fcvc = st.slider("Konsumsi Sayur (1 - jarang, 3 - sering)", 1, 3)
+family_history = st.selectbox("Riwayat keluarga obesitas", options=["no", "yes"])
+favc = st.selectbox("Frequent consumption of high-calorie food", options=["no", "yes"])
+fcvc = st.slider("Konsumsi sayur (1 - jarang, 2 - kadang-kadang, 3 - sering)", 1, 3)
 ncp = st.slider("Jumlah makan besar per hari", 1, 4)
-ch2o = st.slider("Konsumsi air harian (1 - sedikit, 3 - banyak)", 1, 3)
+caec = st.selectbox("Consumption of food between meals", options=["no", "Sometimes", "Frequently", "Always"])
+smoke = st.selectbox("Merokok?", options=["no", "yes"])
+ch2o = st.slider("Konsumsi air harian (1 - sedikit, 2 - cukup, 3 - banyak)", 1, 3)
+scc = st.selectbox("Monitoring konsumsi kalori", options=["no", "yes"])
 faf = st.slider("Frekuensi aktivitas fisik (0 - tidak pernah, 3 - rutin)", 0, 3)
 tue = st.slider("Waktu screen time (jam/hari)", 0, 3)
+calc = st.selectbox("Alcohol consumption", options=["no", "Sometimes", "Frequently"])
+mtrans = st.selectbox("Transportasi yang digunakan", options=["Public_Transportation", "Walking", "Automobile", "Motorbike", "Bike"])
+
 
 # Gabungkan ke dalam array
 input_data = np.array([[age, height, weight, fcvc, ncp, ch2o, faf, tue]])
