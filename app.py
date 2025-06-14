@@ -3,15 +3,14 @@ import joblib
 import numpy as np
 import pandas as pd
 
-# Muat model dan scaler
+# Muat model dan metadata
 try:
     data = joblib.load("random_forest_model.pkl")
     model = data['model']
     expected_columns = data['columns']
-    encoder = data['label_encoder']
-    scaler = joblib.load("scaler.pkl")
-except FileNotFoundError as e:
-    st.error(f"File tidak ditemukan: {e}. Pastikan file model dan scaler sudah diupload.")
+    scaler = data['scaler']
+except FileNotFoundError:
+    st.error("File model tidak ditemukan. Pastikan file `random_forest_model.pkl` sudah diupload.")
     st.stop()
 
 # Mapping hasil prediksi
@@ -27,7 +26,7 @@ label_map = {
 
 # UI Streamlit
 st.title("🎯 Prediksi Tingkat Obesitas")
-st.write("Isi data berikut untuk memprediksi status berat badan Anda:")
+st.subheader("Isi data berikut:")
 
 # Input user
 age = st.slider("Usia", 10, 100)
@@ -51,40 +50,21 @@ mtrans = st.selectbox("Transportation used", options=["Public_Transportation", "
 # Buat DataFrame
 input_dict = {
     'Age': [age],
+    'Gender': [gender],
     'Height': [height],
     'Weight': [weight],
+    'FamilyHistory': [family_history],
+    'FAVC': [favc],
     'FCVC': [fcvc],
     'NCP': [ncp],
-    'CH2O': [ch2o],
-    'FAF': [faf],
-    'TUE': [tue],
-    'Gender': [gender],
-    'family_history_with_overweight': [family_history],
-    'FAVC': [favc],
     'CAEC': [caec],
     'SMOKE': [smoke],
+    'CH2O': [ch2o],
     'SCC': [scc],
+    'FAF': [faf],
+    'TUE': [tue],
     'CALC': [calc],
     'MTRANS': [mtrans]
 }
 
-input_df = pd.DataFrame(input_dict)
-
-# Encode kolom kategorikal
-for col in ['Gender', 'family_history_with_overweight', 'FAVC', 'CAEC', 'SMOKE', 'SCC', 'CALC', 'MTRANS']:
-    input_df[col] = encoder.transform(input_df[col])
-
-# Urutkan sesuai dengan fitur saat training
-input_df = input_df[expected_columns]
-
-# Scaling
-input_scaled = scaler.transform(input_df)
-
-# Prediksi
-if st.button("🔍 Prediksi"):
-    try:
-        prediction = model.predict(input_scaled)
-        label = label_map.get(prediction[0], "Unknown")
-        st.success(f"🎯 Hasil Prediksi: **{label}**")
-    except Exception as e:
-        st.error(f"Gagal melakukan prediksi: {e}")
+input
