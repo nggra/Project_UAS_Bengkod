@@ -3,14 +3,12 @@ import joblib
 import numpy as np
 import pandas as pd
 
-# Muat model dan metadata
+# Muat model dan scaler
 try:
-    data = joblib.load("random_forest_model.pkl")
-    model = data['model']
-    expected_columns = data['columns']
-    scaler = data['scaler']
+    model = joblib.load("random_forest_model.pkl")
+    scaler = joblib.load("scaler.pkl")
 except FileNotFoundError:
-    st.error("File model tidak ditemukan. Pastikan file `random_forest_model.pkl` sudah diupload.")
+    st.error("File model atau scaler tidak ditemukan. Pastikan file sudah diupload.")
     st.stop()
 
 # Mapping hasil prediksi
@@ -26,45 +24,68 @@ label_map = {
 
 # UI Streamlit
 st.title("🎯 Prediksi Tingkat Obesitas")
-st.subheader("Isi data berikut:")
+st.write("Isi data berikut untuk memprediksi tingkat obesitas Anda:")
 
 # Input user
 age = st.slider("Usia", 10, 100)
+gender = st.selectbox("Jenis Kelamin", options=["Male", "Female"])
 height = st.slider("Tinggi Badan (meter)", 1.0, 2.5, step=0.01)
 weight = st.slider("Berat Badan (kg)", 20.0, 200.0, step=0.5)
-fcvc = st.slider("Konsumsi Sayur (1 - jarang, 3 - sering)", 1, 3)
+family_history = st.selectbox("Riwayat keluarga obesitas", options=["no", "yes"])
+favc = st.selectbox("Frequent consumption of high-calorie food", options=["no", "yes"])
+fcvc = st.slider("Konsumsi sayur (1 - jarang, 2 - kadang-kadang, 3 - sering)", 1, 3)
 ncp = st.slider("Jumlah makan besar per hari", 1, 4)
-ch2o = st.slider("Konsumsi air harian (1 - sedikit, 3 - banyak)", 1, 3)
+caec = st.selectbox("Consumption of food between meals", options=["no", "Sometimes", "Frequently", "Always"])
+smoke = st.selectbox("Merokok?", options=["no", "yes"])
+ch2o = st.slider("Konsumsi air harian (1 - sedikit, 2 - cukup, 3 - banyak)", 1, 3)
+scc = st.selectbox("Monitoring konsumsi kalori", options=["no", "yes"])
 faf = st.slider("Frekuensi aktivitas fisik (0 - tidak pernah, 3 - rutin)", 0, 3)
 tue = st.slider("Waktu screen time (jam/hari)", 0, 3)
-
-gender = st.selectbox("Gender", options=["Male", "Female"])
-family_history = st.selectbox("Riwayat Keluarga Obesitas", options=["no", "yes"])
-favc = st.selectbox("Frequent consumption of high-calorie food", options=["no", "yes"])
-caec = st.selectbox("Consumption of food between meals", options=["Sometimes", "Frequently", "Always", "no"])
-smoke = st.selectbox("Smoking", options=["no", "yes"])
-scc = st.selectbox("Calories consumption monitoring", options=["no", "yes"])
 calc = st.selectbox("Alcohol consumption", options=["no", "Sometimes", "Frequently"])
-mtrans = st.selectbox("Transportation used", options=["Public_Transportation", "Walking", "Automobile", "Motorbike", "Bike"])
+mtrans = st.selectbox("Transportasi yang digunakan", options=["Public_Transportation", "Walking", "Automobile", "Motorbike", "Bike"])
 
-# Buat DataFrame
-input_dict = {
-    'Age': [age],
-    'Gender': [gender],
-    'Height': [height],
-    'Weight': [weight],
-    'FamilyHistory': [family_history],
-    'FAVC': [favc],
-    'FCVC': [fcvc],
-    'NCP': [ncp],
-    'CAEC': [caec],
-    'SMOKE': [smoke],
-    'CH2O': [ch2o],
-    'SCC': [scc],
-    'FAF': [faf],
-    'TUE': [tue],
-    'CALC': [calc],
-    'MTRANS': [mtrans]
-}
+# Encode manual kategorikal
+gender_encoded = 1 if gender == "Male" else 0
+family_history_encoded = 1 if family_history == "yes" else 0
+favc_encoded = 1 if favc == "yes" else 0
+caec_encoded = {"no": 0, "Sometimes": 1, "Frequently": 2, "Always": 3}[caec]
+smoke_encoded = 1 if smoke == "yes" else 0
+scc_encoded = 1 if scc == "yes" else 0
+calc_encoded = {"no": 0, "Sometimes": 1, "Frequently": 2}[calc]
+mtrans_encoded = {"Public_Transportation": 0, "Walking": 1, "Automobile": 2, "Motorbike": 3, "Bike": 4}[mtrans]
 
-input
+# Gabungkan semua fitur dalam urutan yang benar (sesuaikan dengan saat training)
+input_data = np.array([[
+    age,
+    gender_encoded,
+    height,
+    weight,
+    family_history_encoded,
+    favc_encoded,
+    fcvc,
+    ncp,
+    caec_encoded,
+    smoke_encoded,
+    ch2o,
+    scc_encoded,
+    faf,
+    tue,
+    calc_encoded,
+    mtrans_encoded
+]])
+
+# Standarisasi input
+try:
+    input_scaled = scaler.transform(input_data)
+except Exception as e:
+    st.error(f"Gagal melakukan scaling: {e}")
+    st.stop()
+
+# Prediksi
+if st.button("🔍 Prediksi"):
+    try:
+        prediction = model.predict(input_scaled)
+        label = label_map.get(prediction[0], "Unknown")
+        st.success(f"🎯 Hasil Prediksi: **{label}**")
+    except Exception as e:
+        st.error(f"🚨 Gagal melakukan prediksi: {e}")
