@@ -377,14 +377,35 @@ except Exception as e:
 # Gabungkan numerik dan kategorikal menjadi input akhir
 final_input = np.concatenate([categorical_input, numeric_scaled], axis=1)
 
-# Tombol prediksi
 if st.button("Prediksi"):
     try:
+        # Lakukan prediksi
         prediction = model.predict(final_input)
+        
+        # Load kembali LabelEncoder dari file
         encoder = joblib.load("label_encoder.pkl")
+
+        # Ubah hasil prediksi (angka) menjadi label string
         prediction_label = encoder.inverse_transform(prediction)[0]
+
+        # Peta label string ke bahasa Indonesia
+        label_map = {
+            'Insufficient_Weight': 'Berat Badan Kurang',
+            'Normal_Weight': 'Berat Badan Normal',
+            'Obesity_Type_I': 'Obesitas Tipe I',
+            'Obesity_Type_II': 'Obesitas Tipe II',
+            'Obesity_Type_III': 'Obesitas Tipe III',
+            'Overweight_Level_I': 'Kelebihan Berat Badan Level I',
+            'Overweight_Level_II': 'Kelebihan Berat Badan Level II'
+        }
+
+        # Ambil label bahasa Indonesia atau fallback ke label asli
         label = label_map.get(prediction_label, prediction_label)
+
+        # Tampilkan hasil prediksi
         st.success(f"Hasil Prediksi: {label}")
+
     except Exception as e:
         st.error(f"Terjadi kesalahan saat prediksi: {e}")
+
 
