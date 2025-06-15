@@ -301,91 +301,84 @@ print("- Hyperparameter tuning telah dilakukan menggunakan GridSearchCV pada mod
 best_rf = grid_search.best_estimator_
 print("Best Parameters:", grid_search.best_params_)
 
-# Save the best model
-model = joblib.load("random_forest_model.pkl")
-scaler = joblib.load("scaler.pkl")  # Simpan dan load scaler yang digunakan saat training
+# Load model dan scaler
+model = joblib.load('random_forest_model.pkl')
+scaler = joblib.load('scaler.pkl')
 
-# Prediksi dengan model terbaik
-y_pred_tuned = best_rf.predict(X_test)
-
-# Mapping hasil prediksi ke label
+# Label encoding untuk input pengguna
+gender_map = {'Male': 1, 'Female': 0}
+family_history_map = {'Yes': 1, 'No': 0}
+favc_map = {'Yes': 1, 'No': 0}
+caec_map = {'No': 0, 'Sometimes': 1, 'Frequently': 2, 'Always': 3}
+smoke_map = {'Yes': 1, 'No': 0}
+scc_map = {'Yes': 1, 'No': 0}
+calc_map = {'No': 0, 'Sometimes': 1, 'Frequently': 2, 'Always': 3}
+mtrans_map = {
+    'Automobile': 0,
+    'Motorbike': 1,
+    'Bike': 2,
+    'Public Transportation': 3,
+    'Walking': 4
+}
 label_map = {
-    0: "Insufficient_Weight", 
-    1: "Normal_Weight", 
-    2: "Overweight_Level_I",
-    3: "Overweight_Level_II", 
-    4: "Obesity_Type_I",
-    5: "Obesity_Type_II", 
-    6: "Obesity_Type_III"
+    'Insufficient_Weight': 'Berat Badan Kurang',
+    'Normal_Weight': 'Berat Badan Normal',
+    'Obesity_Type_I': 'Obesitas Tipe I',
+    'Obesity_Type_II': 'Obesitas Tipe II',
+    'Obesity_Type_III': 'Obesitas Tipe III',
+    'Overweight_Level_I': 'Kelebihan Berat Badan Level I',
+    'Overweight_Level_II': 'Kelebihan Berat Badan Level II'
 }
 
-st.title("Prediksi Tingkat Obesitas")
-st.write("Isi data berikut untuk memprediksi status berat badan Anda:")
+# Sidebar input pengguna
+st.sidebar.header("Input Data Pengguna")
+gender = st.sidebar.selectbox("Jenis Kelamin", list(gender_map.keys()))
+age = st.sidebar.number_input("Umur", min_value=1, max_value=100, value=25)
+height = st.sidebar.number_input("Tinggi Badan (m)", min_value=1.0, max_value=2.5, value=1.70)
+weight = st.sidebar.number_input("Berat Badan (kg)", min_value=1.0, max_value=200.0, value=70.0)
+family_history = st.sidebar.selectbox("Riwayat Kegemukan dalam Keluarga", list(family_history_map.keys()))
+favc = st.sidebar.selectbox("Apakah sering mengonsumsi makanan tinggi kalori?", list(favc_map.keys()))
+fcvc = st.sidebar.slider("Frekuensi konsumsi sayur (0: jarang, 1: selalu)", 0.0, 1.0, 0.8)
+ncp = st.sidebar.slider("Jumlah makanan utama per hari", 1.0, 4.0, 3.0)
+caec = st.sidebar.selectbox("Frekuensi ngemil", list(caec_map.keys()))
+smoke = st.sidebar.selectbox("Apakah merokok?", list(smoke_map.keys()))
+ch2o = st.sidebar.slider("Konsumsi air (liter/hari)", 0.0, 3.0, 2.0)
+scc = st.sidebar.selectbox("Apakah memonitor kalori makanan?", list(scc_map.keys()))
+faf = st.sidebar.slider("Frekuensi aktivitas fisik (jam/minggu)", 0.0, 5.0, 2.0)
+tue = st.sidebar.slider("Waktu menggunakan perangkat elektronik (jam/hari)", 0.0, 5.0, 1.0)
+calc = st.sidebar.selectbox("Frekuensi konsumsi alkohol", list(calc_map.keys()))
+mtrans = st.sidebar.selectbox("Transportasi utama", list(mtrans_map.keys()))
 
-# Input user
-age = st.slider("Usia", 10, 100)
-gender = st.selectbox("Jenis Kelamin", options=["Male", "Female"])
-height = st.slider("Tinggi Badan (meter)", 1.0, 2.5, step=0.01)
-weight = st.slider("Berat Badan (kg)", 20.0, 200.0, step=0.5)
-family_history = st.selectbox("Riwayat keluarga obesitas", options=["no", "yes"])
-favc = st.selectbox("Frequent consumption of high-calorie food", options=["no", "yes"])
-fcvc = st.slider("Konsumsi sayur (1 - jarang, 2 - kadang-kadang, 3 - sering)", 1, 3)
-ncp = st.slider("Jumlah makan besar per hari", 1, 4)
-caec = st.selectbox("Consumption of food between meals", options=["no", "Sometimes", "Frequently", "Always"])
-smoke = st.selectbox("Merokok?", options=["no", "yes"])
-ch2o = st.slider("Konsumsi air harian (1 - sedikit, 2 - cukup, 3 - banyak)", 1, 3)
-scc = st.selectbox("Monitoring konsumsi kalori", options=["no", "yes"])
-faf = st.slider("Frekuensi aktivitas fisik (0 - tidak pernah, 3 - rutin)", 0, 3)
-tue = st.slider("Waktu screen time (jam/hari)", 0, 3)
-calc = st.selectbox("Alcohol consumption", options=["no", "Sometimes", "Frequently"])
-mtrans = st.selectbox("Transportasi yang digunakan", options=["Public_Transportation", "Walking", "Automobile", "Motorbike", "Bike"])
+# Ubah input ke dalam format numerik
+gender_encoded = gender_map[gender]
+family_history_encoded = family_history_map[family_history]
+favc_encoded = favc_map[favc]
+caec_encoded = caec_map[caec]
+smoke_encoded = smoke_map[smoke]
+scc_encoded = scc_map[scc]
+calc_encoded = calc_map[calc]
+mtrans_encoded = mtrans_map[mtrans]
 
+# Pisahkan fitur numerik dan kategorikal
+numeric_input = np.array([[age, height, weight, fcvc, ncp, ch2o, faf, tue]])
+categorical_input = np.array([[gender_encoded, family_history_encoded, favc_encoded, caec_encoded,
+                               smoke_encoded, scc_encoded, calc_encoded, mtrans_encoded]])
 
-# Gabungkan ke dalam array
-input_data = np.array([[age, height, weight, fcvc, ncp, ch2o, faf, tue]])
-
-# Standarisasi input
-input_scaled = scaler.transform(input_data)
-
-# Encode manual fitur kategorikal
-gender_encoded = 1 if gender == "Male" else 0
-family_history_encoded = 1 if family_history == "yes" else 0
-favc_encoded = 1 if favc == "yes" else 0
-caec_encoded = {"no": 0, "Sometimes": 1, "Frequently": 2, "Always": 3}[caec]
-smoke_encoded = 1 if smoke == "yes" else 0
-scc_encoded = 1 if scc == "yes" else 0
-calc_encoded = {"no": 0, "Sometimes": 1, "Frequently": 2}[calc]
-mtrans_encoded = {"Public_Transportation": 0, "Walking": 1, "Automobile": 2, "Motorbike": 3, "Bike": 4}[mtrans]
-
-# Gabungkan semua fitur dalam urutan yang benar (harus sama dengan saat training)
-input_data = np.array([[
-    age,
-    gender_encoded,
-    height,
-    weight,
-    family_history_encoded,
-    favc_encoded,
-    fcvc,
-    ncp,
-    caec_encoded,
-    smoke_encoded,
-    ch2o,
-    scc_encoded,
-    faf,
-    tue,
-    calc_encoded,
-    mtrans_encoded
-]])
-
-# Standarisasi input
+# Lakukan scaling hanya pada fitur numerik
 try:
-    input_scaled = scaler.transform(input_data)
+    numeric_scaled = scaler.transform(numeric_input)
 except Exception as e:
     st.error(f"Gagal melakukan scaling: {e}")
     st.stop()
 
-# Prediksi
+# Gabungkan numerik dan kategorikal menjadi input akhir
+final_input = np.concatenate([categorical_input, numeric_scaled], axis=1)
+
+# Tombol prediksi
 if st.button("Prediksi"):
-    prediction = model.predict(input_scaled)
-    label = label_map.get(prediction[0], "Unknown")
-    st.success(f"Hasil Prediksi: {label}")
+    try:
+        prediction = model.predict(final_input)
+        label = label_map.get(prediction[0], "Unknown")
+        st.success(f"Hasil Prediksi: {label}")
+    except Exception as e:
+        st.error(f"Terjadi kesalahan saat prediksi: {e}")
