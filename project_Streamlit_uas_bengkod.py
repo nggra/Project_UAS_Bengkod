@@ -330,6 +330,30 @@ label_map = {
     'Overweight_Level_II': 'Kelebihan Berat Badan Level II'
 }
 
+# Konversi input ke bentuk sesuai model
+input_data = pd.DataFrame([[
+    age,
+    gender_map[gender],
+    height,
+    weight,
+    calc_map[calc],
+    favc_map[favc],
+    fcvc,
+    ncp,
+    scc_map[scc],
+    smoke_map[smoke],
+    ch2o,
+    family_history_map[family_history],
+    faf,
+    tue,
+    caec_map[caec],
+    mtrans_map[mtrans]
+]], columns=[
+    'Age', 'Gender', 'Height', 'Weight', 'CALC', 'FAVC', 'FCVC', 'NCP', 'SCC', 
+    'SMOKE', 'CH2O', 'family_history_with_overweight', 'FAF', 'TUE', 'CAEC', 'MTRANS'
+])
+
+
 # Sidebar input pengguna
 st.sidebar.header("Input Data Pengguna")
 age = st.sidebar.number_input("Umur", min_value=1, max_value=100, value=25)
