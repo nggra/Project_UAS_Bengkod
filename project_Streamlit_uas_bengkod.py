@@ -300,6 +300,8 @@ print("- Hyperparameter tuning telah dilakukan menggunakan GridSearchCV pada mod
 # Model terbaik
 best_rf = grid_search.best_estimator_
 print("Best Parameters:", grid_search.best_params_)
+joblib.dump(best_rf, "random_forest_model.pkl")
+
 
 # Load model dan scaler
 model = joblib.load('random_forest_model.pkl')
@@ -379,7 +381,10 @@ final_input = np.concatenate([categorical_input, numeric_scaled], axis=1)
 if st.button("Prediksi"):
     try:
         prediction = model.predict(final_input)
-        label = label_map.get(prediction[0], "Unknown")
+        encoder = joblib.load("label_encoder.pkl")
+        prediction_label = encoder.inverse_transform(prediction)[0]
+        label = label_map.get(prediction_label, prediction_label)
         st.success(f"Hasil Prediksi: {label}")
     except Exception as e:
         st.error(f"Terjadi kesalahan saat prediksi: {e}")
+
