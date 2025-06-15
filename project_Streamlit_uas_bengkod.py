@@ -332,22 +332,23 @@ label_map = {
 
 # Sidebar input pengguna
 st.sidebar.header("Input Data Pengguna")
-gender = st.sidebar.selectbox("Jenis Kelamin", list(gender_map.keys()))
 age = st.sidebar.number_input("Umur", min_value=1, max_value=100, value=25)
+gender = st.sidebar.selectbox("Jenis Kelamin", list(gender_map.keys()))
 height = st.sidebar.number_input("Tinggi Badan (m)", min_value=1.0, max_value=2.5, value=1.70)
 weight = st.sidebar.number_input("Berat Badan (kg)", min_value=1.0, max_value=200.0, value=70.0)
-family_history = st.sidebar.selectbox("Riwayat Kegemukan dalam Keluarga", list(family_history_map.keys()))
+calc = st.sidebar.selectbox("Frekuensi konsumsi alkohol", list(calc_map.keys()))
 favc = st.sidebar.selectbox("Apakah sering mengonsumsi makanan tinggi kalori?", list(favc_map.keys()))
 fcvc = st.sidebar.slider("Frekuensi konsumsi sayur (0: jarang, 3: selalu)", 1.0, 2.0, 3.0)
 ncp = st.sidebar.slider("Jumlah makanan utama per hari", 1.0, 4.0, 3.0)
-caec = st.sidebar.selectbox("Frekuensi ngemil", list(caec_map.keys()))
+scc = st.sidebar.selectbox("Apakah memonitor kalori makanan?", list(scc_map.keys()))
 smoke = st.sidebar.selectbox("Apakah merokok?", list(smoke_map.keys()))
 ch2o = st.sidebar.slider("Konsumsi air (liter/hari)", 0.0, 3.0, 2.0)
-scc = st.sidebar.selectbox("Apakah memonitor kalori makanan?", list(scc_map.keys()))
+family_history = st.sidebar.selectbox("Riwayat Kegemukan dalam Keluarga", list(family_history_map.keys()))
 faf = st.sidebar.slider("Frekuensi aktivitas fisik (jam/minggu)", 0.0, 5.0, 2.0)
 tue = st.sidebar.slider("Waktu menggunakan perangkat elektronik (jam/hari)", 0.0, 5.0, 1.0)
-calc = st.sidebar.selectbox("Frekuensi konsumsi alkohol", list(calc_map.keys()))
+caec = st.sidebar.selectbox("Frekuensi ngemil", list(caec_map.keys()))
 mtrans = st.sidebar.selectbox("Transportasi utama", list(mtrans_map.keys()))
+
 
 # Ubah input ke dalam format numerik
 gender_encoded = gender_map[gender]
